@@ -34,5 +34,12 @@ jobs:
         with:
           name: e2e-output
           path: ci-out/
+      - name: Show results
+        if: always()
+        run: |
+          echo "=== RESULTS ==="; cat ci-out/result.txt
+          echo "=== CRASHES ==="; cat ci-out/crashes.txt || true
+          echo "=== FOCUS ==="; grep -H . ci-out/focus-*.txt || true
+          echo "=== BUFFER-RELATED LOGCAT ==="; grep -iE "buffer|AppWatcher|accessib" ci-out/logcat.txt | tail -40 || true
       - name: Fail if any check failed
         run: '! grep -q "^FAIL" ci-out/result.txt'
