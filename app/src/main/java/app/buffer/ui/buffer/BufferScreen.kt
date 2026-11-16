@@ -181,7 +181,7 @@ private fun FactsPhase(appLabel: String, stats: BufferStats?) {
         Spacer(Modifier.height(8.dp))
     }
     Text(
-        stats.lastOpenedMs?.let { "Last opened: ${formatAgo(it)}" } ?: "You haven’t opened it since the last reset.",
+        stats.lastOpenedMs?.let { "Last opened: ${formatAgo(it)}" } ?: "You haven’t opened it through Buffer yet.",
         color = Muted,
         fontSize = 16.sp,
         textAlign = TextAlign.Center,

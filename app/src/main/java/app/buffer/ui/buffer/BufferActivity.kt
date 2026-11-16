@@ -103,7 +103,7 @@ class BufferActivity : ComponentActivity() {
 
     private fun continueToApp(t: Target) {
         Attempts.markContinued(t.attemptId)
-        AppWatcherService.allowOnce(t.pkg)
+        AppWatcherService.foreground = t.pkg
         packageManager.getLaunchIntentForPackage(t.pkg)?.let {
             it.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             startActivity(it)

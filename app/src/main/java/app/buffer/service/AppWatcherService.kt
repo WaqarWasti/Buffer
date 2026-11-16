@@ -15,7 +15,6 @@ import app.buffer.ui.buffer.BufferActivity
  */
 class AppWatcherService : AccessibilityService() {
 
-    private var foreground: String? = null
     private var imePackages: Set<String> = emptySet()
     private var imeCheckedAt = 0L
 
@@ -34,7 +33,6 @@ class AppWatcherService : AccessibilityService() {
         if (previous == pkg) return // moving around inside the same app
 
         if (pkg !in Store.config.value.enabled) return
-        if (consumeAllow(pkg)) return
         if (bufferShowing == pkg) return
 
         val attemptId = Attempts.record(pkg)
@@ -64,23 +62,9 @@ class AppWatcherService : AccessibilityService() {
         @Volatile
         var bufferShowing: String? = null
 
+        /** Package we believe is in front. Buffer sets this when the user continues, so the app they chose doesn't re-trigger. */
         @Volatile
-        private var allowPkg: String? = null
-
-        @Volatile
-        private var allowUntil = 0L
-
-        /** One-shot pass for the app the user just chose to continue to. Not a timer or pause. */
-        fun allowOnce(pkg: String) {
-            allowPkg = pkg
-            allowUntil = System.currentTimeMillis() + 5_000
-        }
-
-        private fun consumeAllow(pkg: String): Boolean {
-            val ok = allowPkg == pkg && System.currentTimeMillis() < allowUntil
-            if (allowPkg == pkg) allowPkg = null
-            return ok
-        }
+        var foreground: String? = null
 
         private val TRANSIENT_PACKAGES = setOf(
             "com.android.systemui",
