@@ -53,6 +53,9 @@ sleep 1; shot 2-breath
 sleep 1.5; shot 3-facts
 sleep 3; shot 4-buttons
 expect_top buffer "app.buffer/.ui.buffer.BufferActivity" "buffer appears when blocked app opens"
+adb shell dumpsys accessibility > "$OUT/a11y-dump.txt" 2>&1
+adb shell settings get secure enabled_accessibility_services > "$OUT/a11y-setting.txt"
+adb shell settings get secure accessibility_enabled >> "$OUT/a11y-setting.txt"
 
 # 3. Back = decline, lands on home
 adb shell input keyevent KEYCODE_BACK

@@ -62,7 +62,19 @@ class AppWatcherService : AccessibilityService() {
         startActivity(intent)
     }
 
-    override fun onInterrupt() = Unit
+    override fun onInterrupt() {
+        Log.w(TAG, "service interrupted")
+    }
+
+    override fun onUnbind(intent: Intent?): Boolean {
+        Log.w(TAG, "service unbound")
+        return super.onUnbind(intent)
+    }
+
+    override fun onDestroy() {
+        Log.w(TAG, "service destroyed")
+        super.onDestroy()
+    }
 
     /** System UI, keyboards and dialogs that appear on top of an app without leaving it. */
     private fun isTransient(pkg: String): Boolean {
