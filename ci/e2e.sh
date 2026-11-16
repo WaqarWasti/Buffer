@@ -15,6 +15,10 @@ shot() { adb exec-out screencap -p > "$OUT/$1.png"; }
 top() { adb shell dumpsys activity activities | grep -E "topResumedActivity" | head -1 | tee "$OUT/top-$1.txt"; }
 launch_target() { adb shell monkey -p "$TARGET" -c android.intent.category.LAUNCHER 1 >/dev/null 2>&1; }
 bufferlog() { adb logcat -d -s BufferSvc:V; }
+triggers() { bufferlog | grep -c "TRIGGER buffer"; }
+expect_triggers() { # n, description
+  N=$(triggers); [ "$N" = "$1" ] && pass "$2 (triggers=$N)" || fail "$2 (expected $1 triggers, got $N)"
+}
 expect_top() { # name, regex, description
   top "$1" >/dev/null
   grep -Eq "$2" "$OUT/top-$1.txt" && pass "$3" || fail "$3"
@@ -80,15 +84,20 @@ adb shell input swipe 540 2150 540 2150 2500
 sleep 3
 shot 6-after-continue
 expect_top continue "com.android.settings" "hold-to-continue opens the app"
-adb shell input tap 540 700; sleep 2
-shot 7-after-nav
-expect_top nav "com.android.settings" "no buffer while using the app (still in settings)"
+# Use the app: scroll, pull the notification shade down and up. None of this may re-trigger the buffer.
+adb shell input swipe 540 1800 540 600 300; sleep 1
+adb shell cmd statusbar expand-notifications; sleep 2
+adb shell cmd statusbar collapse; sleep 2
+shot 7-after-use
+expect_top nav "com.android.settings" "still in the app after scrolling and notification shade"
+expect_triggers 2 "no re-trigger while using the app"
 
 # 5. Leaving and reopening shows the buffer again
 adb shell input keyevent KEYCODE_HOME; sleep 2
 launch_target; sleep 2
 shot 8-reopen
 expect_top reopen "app.buffer/.ui.buffer.BufferActivity" "buffer shows again on reopen after continuing"
+expect_triggers 3 "reopen counted as a new attempt"
 
 # 6. Final UI text check (one dump, at the very end, after the countdown)
 sleep 4
