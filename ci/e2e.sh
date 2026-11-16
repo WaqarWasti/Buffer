@@ -10,8 +10,8 @@ RESULT="$OUT/result.txt"
 pass() { echo "PASS  $1" | tee -a "$RESULT"; }
 fail() { echo "FAIL  $1" | tee -a "$RESULT"; FAILED=1; }
 shot() { adb exec-out screencap -p > "$OUT/$1.png"; }
-dump() { adb shell uiautomator dump /sdcard/ui.xml >/dev/null 2>&1; adb pull /sdcard/ui.xml "$OUT/$1.xml" >/dev/null 2>&1; }
-focus() { adb shell dumpsys window | grep -E "mCurrentFocus" | head -1; }
+dump() { adb shell uiautomator dump /sdcard/ui.xml 2>&1 | tee -a "$OUT/dump-log.txt"; adb pull /sdcard/ui.xml "$OUT/$1.xml" >/dev/null 2>&1; }
+focus() { adb shell dumpsys window | grep -E "mCurrentFocus" | head -1; adb shell dumpsys activity activities | grep -E "topResumedActivity" | head -1; }
 launch_target() { adb shell monkey -p "$TARGET" -c android.intent.category.LAUNCHER 1 >/dev/null 2>&1; }
 
 adb install -r app/build/outputs/apk/debug/app-debug.apk || { fail "install"; exit 0; }
@@ -24,7 +24,7 @@ adb shell settings put secure accessibility_enabled 1
 sleep 3
 
 # 1. Dashboard renders
-adb shell am start -n "$PKG/.ui.dashboard.MainActivity" >/dev/null
+adb shell am start -W -n "$PKG/app.buffer.ui.dashboard.MainActivity" 2>&1 | tee "$OUT/am-start-dashboard.txt"
 sleep 5
 shot 1-dashboard; dump 1-dashboard
 grep -q "Buffer" "$OUT/1-dashboard.xml" && pass "dashboard shows" || fail "dashboard shows"
@@ -78,6 +78,6 @@ grep -q "BufferActivity" "$OUT/focus-reopen.txt" && pass "buffer shows again on 
 shot 9-reopen
 
 adb logcat -d -t 2000 > "$OUT/logcat.txt"
-grep -E "FATAL EXCEPTION|AndroidRuntime" "$OUT/logcat.txt" | head -20 > "$OUT/crashes.txt"
+grep -A12 "FATAL EXCEPTION" "$OUT/logcat.txt" | head -40 > "$OUT/crashes.txt"
 [ -s "$OUT/crashes.txt" ] && fail "app crashed (see crashes.txt, logcat.txt)" || pass "no crashes"
 exit 0
