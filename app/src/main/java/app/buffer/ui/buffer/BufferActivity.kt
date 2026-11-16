@@ -25,6 +25,7 @@ class BufferActivity : ComponentActivity() {
     private data class Target(val pkg: String, val attemptId: Long)
 
     private var target by mutableStateOf<Target?>(null)
+    private var continued = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -93,6 +94,7 @@ class BufferActivity : ComponentActivity() {
     }
 
     private fun decline() {
+        AppWatcherService.foreground = null
         startActivity(
             Intent(Intent.ACTION_MAIN)
                 .addCategory(Intent.CATEGORY_HOME)
@@ -102,6 +104,7 @@ class BufferActivity : ComponentActivity() {
     }
 
     private fun continueToApp(t: Target) {
+        continued = true
         Attempts.markContinued(t.attemptId)
         AppWatcherService.foreground = t.pkg
         packageManager.getLaunchIntentForPackage(t.pkg)?.let {
@@ -120,6 +123,8 @@ class BufferActivity : ComponentActivity() {
     override fun onDestroy() {
         super.onDestroy()
         if (AppWatcherService.bufferShowing == target?.pkg) AppWatcherService.bufferShowing = null
+        // Left without choosing "continue": we no longer know what is in front, so the next open must trigger.
+        if (!continued) AppWatcherService.foreground = null
     }
 
     companion object {

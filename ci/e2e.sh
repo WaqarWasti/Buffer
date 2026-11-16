@@ -19,6 +19,7 @@ adb shell am force-stop "$PKG"
 adb shell "run-as $PKG sh -c 'mkdir -p shared_prefs'"
 adb shell "run-as $PKG sh -c 'cat > shared_prefs/buffer.xml'" < ci/buffer_prefs.xml
 adb shell appops set "$PKG" SYSTEM_ALERT_WINDOW allow
+adb shell settings put global hide_error_dialogs 1
 adb shell settings put secure enabled_accessibility_services "$PKG/$PKG.service.AppWatcherService"
 adb shell settings put secure accessibility_enabled 1
 sleep 3

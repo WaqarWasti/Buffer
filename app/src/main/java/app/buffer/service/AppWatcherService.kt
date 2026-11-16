@@ -26,6 +26,9 @@ class AppWatcherService : AccessibilityService() {
             foreground = pkg
             return
         }
+        // While the buffer is up, the app underneath may still emit events. They say nothing
+        // about where the user is, so they must not change what we think is in front.
+        if (pkg == bufferShowing) return
         if (isTransient(pkg)) return
 
         val previous = foreground
