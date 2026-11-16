@@ -3,6 +3,7 @@ package app.buffer.ui.buffer
 import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.SystemBarStyle
@@ -33,6 +34,7 @@ class BufferActivity : ComponentActivity() {
             statusBarStyle = SystemBarStyle.dark(Color.TRANSPARENT),
             navigationBarStyle = SystemBarStyle.dark(Color.TRANSPARENT),
         )
+        Log.i(AppWatcherService.TAG, "buffer: onCreate")
         if (!readTarget(intent)) {
             finish()
             return
@@ -94,6 +96,7 @@ class BufferActivity : ComponentActivity() {
     }
 
     private fun decline() {
+        Log.i(AppWatcherService.TAG, "buffer: DECLINE")
         AppWatcherService.foreground = null
         startActivity(
             Intent(Intent.ACTION_MAIN)
@@ -104,6 +107,7 @@ class BufferActivity : ComponentActivity() {
     }
 
     private fun continueToApp(t: Target) {
+        Log.i(AppWatcherService.TAG, "buffer: CONTINUE to ${t.pkg}")
         continued = true
         Attempts.markContinued(t.attemptId)
         AppWatcherService.foreground = t.pkg
@@ -116,12 +120,14 @@ class BufferActivity : ComponentActivity() {
 
     override fun onStop() {
         super.onStop()
+        Log.i(AppWatcherService.TAG, "buffer: onStop isFinishing=$isFinishing")
         // Leaving by any other route (home, recents, screen off) ends the buffer. Counts as declined.
         if (!isFinishing) finish()
     }
 
     override fun onDestroy() {
         super.onDestroy()
+        Log.i(AppWatcherService.TAG, "buffer: onDestroy")
         if (AppWatcherService.bufferShowing == target?.pkg) AppWatcherService.bufferShowing = null
         // Left without choosing "continue": we no longer know what is in front, so the next open must trigger.
         if (!continued) AppWatcherService.foreground = null

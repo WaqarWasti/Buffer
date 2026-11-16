@@ -78,7 +78,8 @@ focus | tee "$OUT/focus-reopen.txt"
 grep -q "BufferActivity" "$OUT/focus-reopen.txt" && pass "buffer shows again on reopen" || fail "buffer shows again on reopen"
 shot 9-reopen
 
-adb logcat -d -t 2000 > "$OUT/logcat.txt"
+adb logcat -d > "$OUT/logcat.txt"
+adb logcat -d -s BufferSvc:V > "$OUT/bufferlog.txt"
 grep -A12 "FATAL EXCEPTION" "$OUT/logcat.txt" | head -40 > "$OUT/crashes.txt"
 [ -s "$OUT/crashes.txt" ] && fail "app crashed (see crashes.txt, logcat.txt)" || pass "no crashes"
 exit 0

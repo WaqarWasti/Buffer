@@ -2,6 +2,7 @@ package app.buffer.service
 
 import android.accessibilityservice.AccessibilityService
 import android.content.Intent
+import android.util.Log
 import android.view.accessibility.AccessibilityEvent
 import android.view.inputmethod.InputMethodManager
 import app.buffer.data.Attempts
@@ -18,26 +19,41 @@ class AppWatcherService : AccessibilityService() {
     private var imePackages: Set<String> = emptySet()
     private var imeCheckedAt = 0L
 
+    override fun onServiceConnected() {
+        super.onServiceConnected()
+        Log.i(TAG, "service connected; enabled=${Store.config.value.enabled}")
+    }
+
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
         if (event == null || event.eventType != AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) return
         val pkg = event.packageName?.toString() ?: return
 
         if (pkg == packageName) {
+            Log.d(TAG, "own window; fg=$foreground -> $pkg")
             foreground = pkg
             return
         }
         // While the buffer is up, the app underneath may still emit events. They say nothing
         // about where the user is, so they must not change what we think is in front.
-        if (pkg == bufferShowing) return
-        if (isTransient(pkg)) return
+        if (pkg == bufferShowing) {
+            Log.d(TAG, "$pkg: ignored, buffer is showing for it")
+            return
+        }
+        if (isTransient(pkg)) {
+            Log.d(TAG, "$pkg: ignored, transient")
+            return
+        }
 
         val previous = foreground
         foreground = pkg
         if (previous == pkg) return // moving around inside the same app
 
-        if (pkg !in Store.config.value.enabled) return
+        val monitored = pkg in Store.config.value.enabled
+        Log.d(TAG, "$pkg: fg $previous -> $pkg, monitored=$monitored")
+        if (!monitored) return
         if (bufferShowing == pkg) return
 
+        Log.i(TAG, "$pkg: TRIGGER buffer")
         val attemptId = Attempts.record(pkg)
         val intent = Intent(this, BufferActivity::class.java)
             .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_NO_ANIMATION)
@@ -61,6 +77,8 @@ class AppWatcherService : AccessibilityService() {
     }
 
     companion object {
+        const val TAG = "BufferSvc"
+
         /** Package currently showing the buffer, so we never stack a second one. */
         @Volatile
         var bufferShowing: String? = null
