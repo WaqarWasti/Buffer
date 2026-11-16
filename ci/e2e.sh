@@ -35,6 +35,10 @@ for i in $(seq 1 30); do
   sleep 1
 done
 bufferlog | grep -q "service connected" && pass "accessibility service connected" || fail "accessibility service connected"
+# Apps that were already running when the service was switched on via `settings put` may not
+# report window events. Restart the target so it starts with accessibility already enabled.
+adb shell am force-stop "$TARGET"
+sleep 3
 
 # 1. Dashboard opens
 adb shell am start -W -n "$PKG/app.buffer.ui.dashboard.MainActivity" >/dev/null
