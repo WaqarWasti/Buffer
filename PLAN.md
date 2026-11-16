@@ -33,7 +33,7 @@ app/
 
 ### Detection (the core)
 - `AppWatcherService` listens to `TYPE_WINDOW_STATE_CHANGED`, reads `event.packageName`.
-- If package is in the enabled set, not in grace period, and not us/launcher/SystemUI:
+- If package is in the enabled set, not the one-shot "just continued" flag, and not us/launcher/SystemUI:
   log attempt, launch `BufferActivity(package)`.
 - Keep the enabled set in memory (Room Flow collected in the service). Toggling a switch takes effect instantly.
 - Privacy hardening: update `serviceInfo.packageNames` at runtime to only the enabled apps, and set `canRetrieveWindowContent=false`. The service then never even sees events from other apps and never reads screen content.
