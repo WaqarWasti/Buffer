@@ -3,6 +3,9 @@ on:
   push:
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   apk:
     runs-on: ubuntu-latest
@@ -31,3 +34,11 @@ jobs:
         with:
           name: buffer-apk
           path: app/build/outputs/apk/release/*.apk
+      - name: Publish APK to the 'latest' release (easy phone download)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cp app/build/outputs/apk/release/app-release.apk Buffer.apk
+          gh release delete latest --cleanup-tag --yes || true
+          gh release create latest Buffer.apk --target "$GITHUB_SHA" \
+            --title "Latest build" --notes "Built from $GITHUB_SHA"
