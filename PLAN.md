@@ -36,7 +36,7 @@ app/
 - If package is in the enabled set, not the one-shot "just continued" flag, and not us/launcher/SystemUI:
   log attempt, launch `BufferActivity(package)`.
 - Keep the enabled set in memory (Room Flow collected in the service). Toggling a switch takes effect instantly.
-- Privacy hardening: update `serviceInfo.packageNames` at runtime to only the enabled apps, and set `canRetrieveWindowContent=false`. The service then never even sees events from other apps and never reads screen content.
+- Privacy: `canRetrieveWindowContent=false`, so the service never reads screen content. It does receive window-change events from all apps (needed to tell when you LEFT an app, so in-app screens don't retrigger the buffer) but only compares package names. Keyboards, system UI and share sheets are ignored as transient.
 - Backup: `SYSTEM_ALERT_WINDOW` so the buffer can be drawn over the app if Android blocks the background activity launch. Verify on your device which one is needed.
 
 ### Buffer flow
@@ -62,7 +62,7 @@ Opening the app itself (not the buffer) lands on a dashboard where all settings 
 ## Security and privacy ("use on my phone in a secure way")
 - Do NOT declare `INTERNET`. The app physically cannot send data off the phone.
 - `allowBackup=false`, `dataExtractionRules` excluding everything. No analytics, no crash SDKs, no ads.
-- Accessibility service narrowed to the selected packages and no window content (above).
+- Accessibility service reads package names only, never window content (above).
 - Sideload only, signed with your own keystore. Don't publish to Play (its accessibility policy makes this hard); keep the repo private or open source so you can audit it.
 - Only dependencies from Google/JetBrains (Compose, Room, DataStore); pin versions, enable Gradle dependency verification.
 - Optional friction against your own impulses: delay or confirm before disabling the service or removing an app from the list.
@@ -86,3 +86,6 @@ No Android emulator is available in this cloud sandbox, so: Gradle build + unit 
 ## Open decisions
 - Buffer length: fixed 15s or per-app? (Plan: per-app, default 15s.)
 - Time saved: flat estimate per declined open, or measured average session via Usage Access? (Plan: start flat, add measured later.)
+
+## Implemented (v0.1)
+All of milestones 1-4 plus a first pass of 5-6 are in the code: dashboard, multi-app toggles, global/per-app buffer length, buffer screen with hold-to-continue, setup health card, CI APK build. Not yet verified on a device (no Android SDK in the authoring sandbox).

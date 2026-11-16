@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">Buffer</string>
+    <string name="a11y_description">Buffer notices when one of the apps you chose is opened and shows a pause first. It only reads which app is in front. It never reads your screen, and Buffer has no internet access.</string>
+</resources>
