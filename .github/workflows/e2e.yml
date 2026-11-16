@@ -39,7 +39,7 @@ jobs:
         run: |
           echo "=== RESULTS ==="; cat ci-out/result.txt
           echo "=== CRASHES ==="; cat ci-out/crashes.txt || true
-          echo "=== FOCUS ==="; grep -H . ci-out/focus-*.txt || true
+          echo "=== TOP ACTIVITY ==="; grep -H . ci-out/top-*.txt || true
           echo "=== BUFFER LOG (BufferSvc) ==="; cat ci-out/bufferlog.txt || true
           echo "=== ACTIVITY STARTS ==="; grep -E "ActivityTaskManager.*START u0" ci-out/logcat.txt | grep -E "app\.buffer|settings" | cut -c1-260 | tail -20 || true
       - name: Fail if any check failed
