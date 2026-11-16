@@ -41,6 +41,7 @@ jobs:
           echo "=== CRASHES ==="; cat ci-out/crashes.txt || true
           echo "=== TOP ACTIVITY ==="; grep -H . ci-out/top-*.txt || true
           echo "=== BUFFER LOG (BufferSvc) ==="; cat ci-out/bufferlog.txt || true
+          echo "=== A11Y RE-ENABLES ==="; cat ci-out/a11y-reenable.txt || echo none
           echo "=== A11Y SETTING ==="; cat ci-out/a11y-setting.txt || true
           echo "=== A11Y DUMP (filtered) ==="; grep -iE "buffer|bound|enabled|crash|binding|suppress|uiautomation" ci-out/a11y-dump.txt | cut -c1-300 | head -40 || true
           echo "=== ACTIVITY STARTS ==="; grep -E "ActivityTaskManager.*START u0" ci-out/logcat.txt | grep -E "app\.buffer|settings" | cut -c1-260 | tail -20 || true
