@@ -18,7 +18,7 @@ See `PLAN.md` for the design.
 3. Copy the APK to the phone and install it (allow "install unknown apps" for your file manager).
 4. Open Buffer and follow "Finish setup": enable the accessibility service (on Android 13+ first open
    Settings > Apps > Buffer > ⋮ > Allow restricted settings), allow display over other apps, set battery to unrestricted.
-5. Xiaomi/MIUI/HyperOS: also enable Autostart for Buffer, lock it in Recents, and allow
-   "Display pop-up windows while running in the background" in the app's permissions.
+5. OnePlus (OxygenOS): Settings > Apps > Buffer > Battery usage > Allow background activity (Unrestricted),
+   turn on "Allow auto launch", and lock Buffer in the Recents screen so it isn't cleared.
 
 Local build: `./gradlew assembleDebug` with the Android SDK (platform 35) installed.
