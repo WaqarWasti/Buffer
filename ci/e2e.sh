@@ -26,15 +26,25 @@ adb shell "run-as $PKG sh -c 'mkdir -p shared_prefs'"
 adb shell "run-as $PKG sh -c 'cat > shared_prefs/buffer.xml'" < ci/buffer_prefs.xml
 adb shell appops set "$PKG" SYSTEM_ALERT_WINDOW allow
 adb shell settings put global hide_error_dialogs 1
-adb shell settings put secure enabled_accessibility_services "$PKG/$PKG.service.AppWatcherService"
-adb shell settings put secure accessibility_enabled 1
-
-# Wait for the accessibility service to actually connect.
-for i in $(seq 1 30); do
-  bufferlog | grep -q "service connected" && break
+# Sideloaded apps are "restricted" from accessibility until the user allows it (App info >
+# Allow restricted settings). Do the same here, otherwise Android switches the service back off.
+adb shell appops set "$PKG" ACCESS_RESTRICTED_SETTINGS allow || true
+SVC="$PKG/$PKG.service.AppWatcherService"
+enable_a11y() {
+  adb shell settings put secure enabled_accessibility_services "$SVC"
+  adb shell settings put secure accessibility_enabled 1
+}
+enable_a11y
+# Keep it enabled; Android may clear the setting during the first seconds after boot/install.
+for i in $(seq 1 25); do
   sleep 1
+  CUR=$(adb shell settings get secure enabled_accessibility_services | tr -d '\r')
+  if [ "$CUR" != "$SVC" ]; then echo "a11y setting was reset to '$CUR', re-enabling" | tee -a "$OUT/a11y-reenable.txt"; enable_a11y; fi
+  if bufferlog | grep -q "service connected" && [ $i -ge 8 ]; then break; fi
 done
 bufferlog | grep -q "service connected" && pass "accessibility service connected" || fail "accessibility service connected"
+CUR=$(adb shell settings get secure enabled_accessibility_services | tr -d '\r')
+[ "$CUR" = "$SVC" ] && pass "accessibility service still enabled after settling" || fail "accessibility service still enabled after settling ($CUR)"
 # Apps that were already running when the service was switched on via `settings put` may not
 # report window events. Restart the target so it starts with accessibility already enabled.
 adb shell am force-stop "$TARGET"
